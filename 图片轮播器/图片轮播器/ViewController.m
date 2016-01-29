@@ -28,6 +28,9 @@
 //当前索引
 @property(assign, nonatomic)int currentImageIndex;
 
+///定时器
+@property(nonatomic, strong)NSTimer *timer;
+
 @end
 
 @implementation ViewController
@@ -82,7 +85,6 @@
     //给self控制器添加定时器
     [self addTimer];
 
-    
     //测试多线程:  创建textView
     UITextView *textView = [[UITextView alloc]init];
     [self.view addSubview:textView];
@@ -98,7 +100,18 @@
 
 - (void)addTimer
 {
-     [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(offset) userInfo:nil repeats:YES];
+     NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(offset) userInfo:nil repeats:YES];
+    
+    self.timer = timer;
+    
+    [[NSRunLoop mainRunLoop] addTimer: self.timer forMode:NSRunLoopCommonModes];
+}
+
+//移除定时器
+- (void)removeTimer
+{
+    [self.timer invalidate];
+    self.timer = nil;
 }
 
 //偏移
@@ -109,7 +122,7 @@
     [self.scrollView setContentOffset:CGPointMake(2 * ZYSCROLLWIDTH, 0) animated:YES];
 }
 
-#pragma mark scrollView代理
+#pragma mark scrollView代理方法
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
    
     [self setupPictureMove];
@@ -119,6 +132,20 @@
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
     [self setupPictureMove];
+}
+
+//当手指开始拖动
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    //移除定时器
+    [self removeTimer];
+}
+
+//手指结束拖拽
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    //添加定时器
+    [self addTimer];
 }
 
 - (void)setupPictureMove
